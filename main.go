@@ -23,6 +23,7 @@ var flagHostname = flag.String(`h`, `HOSTNAME-NOT-SET`, `Server flagHostname`)
 var flagMap = flag.String(`m`, ``, `-m prefix-matcher1:target@targethost,prefix-matcher2:target@targethost`)
 var flagCertFile = flag.String(`c`, ``, ``)
 var flagKeyFile = flag.String(`k`, ``, ``)
+var flagFrom = flag.String(`f`, `forwarder@localnet.cc`, `From of forwarded email`)
 
 func logErrorSMTPMiddleware(handler smtpd.Handler) smtpd.Handler {
 	return func(remoteAddr net.Addr, from string, to []string, data []byte) (err error) {
@@ -32,7 +33,7 @@ func logErrorSMTPMiddleware(handler smtpd.Handler) smtpd.Handler {
 			log.Printf(`failed to forward: %v`, err.Error())
 			return err
 		}
-		log.Printf(`forwarded email remoteAddr=%v from=%v`, remoteAddr, from)
+		log.Printf(`handled email remoteAddr=%v from=%v`, remoteAddr, from)
 		return nil
 	}
 }
@@ -61,9 +62,10 @@ func forward(targetEmail string, data []byte, sendEmail func(string, string, []b
 	if err != nil {
 		return errors.Wrap(err, `failed readEmail`)
 	}
+	headers[textproto.CanonicalMIMEHeaderKey(`Subject`)] = []string{
+		`Forwarded: ` + headers.Get(`subject`) + ` from ` + headers.Get("From")}
 	headers[textproto.CanonicalMIMEHeaderKey(`To`)] = []string{targetEmail}
-	headers[textproto.CanonicalMIMEHeaderKey(`From`)] = []string{`forwarder@localnet.cc`}
-	headers[textproto.CanonicalMIMEHeaderKey(`Subject`)] = []string{`Forwarded: ` + headers.Get(`subject`)}
+	headers[textproto.CanonicalMIMEHeaderKey(`From`)] = []string{*flagFrom}
 
 	var builder bytes.Buffer
 	for headerName, headerValues := range headers {
@@ -79,7 +81,7 @@ func forward(targetEmail string, data []byte, sendEmail func(string, string, []b
 
 	var retryCount = 5
 	for retryCount > 0 {
-		err = sendEmail(`forwarder@localnet.cc`, targetEmail, builder.Bytes())
+		err = sendEmail(*flagFrom, targetEmail, builder.Bytes())
 		if err, ok := err.(*textproto.Error); ok {
 			if 400 <= err.Code && err.Code < 500 {
 				log.Printf(`retry sleep 120s count=%v code=%v msg=%v`, retryCount, err.Code, err.Msg)

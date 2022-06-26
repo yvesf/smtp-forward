@@ -30,6 +30,11 @@ in {
       default = null;
       description = "-c /path/to/file sets the TLS certificate file";
     };
+    from = lib.mkOption {
+      type = lib.types.strMatching ".+@.+";
+      default = "forwarder@localnet.cc";
+      description = "-f local@domain.tld sets the From for the forwarded email";
+    };
   };
   config = lib.mkIf config.services.smtp-forward.enable {
     systemd.services.smtp-forward = {
@@ -37,13 +42,14 @@ in {
       path = [ package ];
       wantedBy = [ "default.target" ];
       script = ''
-        ${package}/bin/smtp-forward -l ${cfg.listen} -m ${cfg.mapping} -h ${cfg.hostname} \
+        ${package}/bin/smtp-forward \
+            -l ${cfg.listen} -m ${cfg.mapping} -h ${cfg.hostname} -f ${cfg.from} \
          		${lib.optionalString (cfg.key != null) "-k ${cfg.key}"} \
          		${lib.optionalString (cfg.cert != null) "-c ${cfg.cert}"}
       '';
       serviceConfig = {
         User = "smtp-forward";
-	# Security
+	      # Security extra configuration
       	AmbientCapabilities = [ "CAP_NET_BIND_SERVICE" ];
       	CapabilityBoundingSet = [ "CAP_NET_BIND_SERVICE" ];
       	NoNewPrivileges = true;

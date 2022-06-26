@@ -34,7 +34,7 @@ func Test__forward(t *testing.T) {
 	var forwardedMails []struct {
 		from, to, body string
 	}
-	err := forward("foo@bar.target", []byte("Subject: foobar\r\n\r\nHello World"), func(from, to string, body []byte) error {
+	err := forward("foo@bar.target", []byte("From: someone@tld\r\nSubject: foobar\r\n\r\nHello World"), func(from, to string, body []byte) error {
 		forwardedMails = append(forwardedMails, struct {
 			from string
 			to   string
@@ -50,7 +50,7 @@ func Test__forward(t *testing.T) {
 		t.Fatal("not forwarded")
 	}
 	if !strings.Contains(forwardedMails[0].body, "From: forwarder@localnet.cc\r\n") ||
-		!strings.Contains(forwardedMails[0].body, "Subject: Forwarded: foobar\r\n") ||
+		!strings.Contains(forwardedMails[0].body, "Subject: Forwarded: foobar from someone@tld\r\n") ||
 		!strings.Contains(forwardedMails[0].body, "To: foo@bar.target\r\n") ||
 		!strings.Contains(forwardedMails[0].body, "\r\n\r\nHello World") {
 		t.Fatal("body", forwardedMails[0].body)
