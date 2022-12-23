@@ -5,7 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"flag"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/mail"
@@ -45,7 +45,7 @@ func readEmail(data []byte) (headers mail.Header, msgData []byte, err error) {
 	}
 	headers = make(mail.Header)
 
-	msgData, err = ioutil.ReadAll(msg.Body)
+	msgData, err = io.ReadAll(msg.Body)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, `failed to parse email body`)
 	}
