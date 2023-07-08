@@ -1,5 +1,5 @@
 {
-  inputs.nixpkgs.url = "nixpkgs/nixos-22.05";
+  inputs.nixpkgs.url = "nixpkgs/nixos-23.05";
   outputs = { self, nixpkgs }:
   with import nixpkgs { system = "x86_64-linux"; };
   {

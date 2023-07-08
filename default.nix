@@ -7,12 +7,11 @@ pkgs.buildGoModule rec {
   vendorSha256 = "sha256-Aqi8Kkh3BWWyeGeyrHJxikhsmMWxpYSwixNsQyTI1R0=";
 
   doCheck = true;
-  checkInputs = [ pkgs.go-tools pkgs.gotools ];
+
+  nativeCheckInputs = [ pkgs.golangci-lint ];
   checkPhase = ''
+    export GOLANGCI_LINT_CACHE=/tmp/golangci-lint-cache
+    golangci-lint run ./...
     go test ./...
-    go vet ./...
-    shadow ./...
-    export STATICCHECK_CACHE=$PWD/staticcheck-cache
-    staticcheck ./...
   '';
 }
