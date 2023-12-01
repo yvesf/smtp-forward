@@ -4,7 +4,7 @@ pkgs.buildGoModule rec {
   version = "0.0.1";
 
   src = ./.;
-  vendorSha256 = "sha256-Aqi8Kkh3BWWyeGeyrHJxikhsmMWxpYSwixNsQyTI1R0=";
+  vendorHash = "sha256-Aqi8Kkh3BWWyeGeyrHJxikhsmMWxpYSwixNsQyTI1R0=";
 
   doCheck = true;
 
